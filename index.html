@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>街ノート</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="街ノート">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F4F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11161C" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F4F3;--card:#FFFFFF;--ink:#1B2A3A;--soft:#5E6B7A;
+  --ai:#2B4C7E;--ai-wash:#E3EAF4;--shu:#C23B22;--shu-wash:#F7E4E0;
+  --moss:#3F7355;--moss-wash:#E1EEE5;--line:#D8DDE2;--on-ai:#FFFFFF;
+  --jp:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  --ui:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#11161C;--card:#19212A;--ink:#E6EBF0;--soft:#98A4B2;
+    --ai:#8EAEDD;--ai-wash:#1F2C3E;--shu:#E0664E;--shu-wash:#3A2420;
+    --moss:#7FB894;--moss-wash:#1C2E24;--line:#2A3440;--on-ai:#11161C;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11161C;--card:#19212A;--ink:#E6EBF0;--soft:#98A4B2;
+  --ai:#8EAEDD;--ai-wash:#1F2C3E;--shu:#E0664E;--shu-wash:#3A2420;
+  --moss:#7FB894;--moss-wash:#1C2E24;--line:#2A3440;--on-ai:#11161C;color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+main{max-width:640px;margin:0 auto;padding:18px 18px 120px}
+img{max-width:100%}
+h1,h2,h3{margin:0;line-height:1.3}
+h1{font-family:var(--jp);font-weight:700;font-size:28px}
+h2{font-size:16px;font-weight:700;margin-bottom:10px}
+p{margin:0 0 10px}
+.soft{color:var(--soft)}
+.small{font-size:14px}
+.tiny{font-size:12.5px}
+.jp{font-family:var(--jp)}
+.sec{margin:28px 0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.stack>*+*{margin-top:10px}
+
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .inner{display:flex;max-width:640px;margin:0 auto}
+nav.tabs button{flex:1;background:none;border:0;padding:9px 2px 11px;color:var(--soft);font:inherit;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;position:relative}
+nav.tabs .k{font-family:var(--jp);font-size:21px;line-height:1.15;font-weight:700}
+nav.tabs button[aria-current="page"]{color:var(--ink)}
+nav.tabs button[aria-current="page"] .k{color:var(--shu)}
+nav.tabs .dot{position:absolute;top:6px;left:calc(50% + 12px);min-width:17px;height:17px;border-radius:9px;background:var(--shu);color:#fff;font-size:10.5px;line-height:17px;padding:0 4px;font-weight:700}
+
+/* hero */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:6px 0 4px}
+.count{font-family:var(--jp);font-weight:700;font-size:clamp(46px,13vw,68px);line-height:1}
+.count .u{font-size:.36em;font-weight:500;margin-left:6px}
+.phase{font-size:14px;color:var(--soft);text-align:right;max-width:52%}
+.phase b{display:block;color:var(--ink);font-weight:700}
+
+/* hanko stamps */
+.stamps{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;margin:18px 0 6px}
+.stamp{aspect-ratio:1;border-radius:50%;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--jp);font-size:clamp(9px,2.4vw,13px);color:transparent;font-weight:700;user-select:none}
+.stamp.done{border:2px solid var(--shu);color:var(--shu);transform:rotate(-10deg);background:color-mix(in srgb,var(--shu) 7%,transparent)}
+.stamp.today{outline:2px solid var(--ai);outline-offset:2px}
+.stamp.fresh{animation:stampIn .55s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stampIn{0%{transform:scale(2.4) rotate(-30deg);opacity:0}60%{opacity:1}100%{transform:scale(1) rotate(-10deg);opacity:1}}
+@media (prefers-reduced-motion:reduce){.stamp.fresh{animation:none}}
+
+/* tasks */
+.task{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:0;padding-top:2px}
+.task:last-child{padding-bottom:2px}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;color:transparent;font-size:14px;font-weight:700}
+.check.on{background:var(--moss);border-color:var(--moss);color:var(--card)}
+.task .body{flex:1;min-width:0}
+.task .t{font-weight:700}
+.hunt-pill{display:inline-flex;align-items:baseline;gap:8px;background:var(--ai-wash);border-radius:10px;padding:6px 10px;margin:6px 6px 0 0}
+.hunt-pill .p{font-family:var(--jp);font-weight:700;font-size:17px}
+.hunt-pill.caught{background:var(--moss-wash)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+.stat .n{font-family:var(--jp);font-size:24px;font-weight:700;line-height:1.2}
+.stat .l{font-size:11.5px;color:var(--soft)}
+
+/* controls */
+.btn{font:inherit;font-weight:500;font-size:15px;border-radius:11px;padding:10px 16px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--ai);border-color:var(--ai);color:var(--on-ai)}
+.btn.shu{background:var(--shu);border-color:var(--shu);color:#fff}
+.btn.quiet{background:none;border-color:transparent;color:var(--ai);padding-left:6px;padding-right:6px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+label{display:block;font-size:14px;font-weight:700;margin:16px 0 6px}
+label .soft{font-weight:400}
+textarea,input[type=text],input[type=number],select{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-height:44px}
+textarea.jp{font-family:var(--jp);font-size:20px;line-height:1.7;min-height:96px;resize:vertical}
+input.jp{font-family:var(--jp);font-size:18px}
+.seg{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--card)}
+.seg button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:9px 4px;color:var(--soft);cursor:pointer;min-height:44px;line-height:1.25}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ai-wash);color:var(--ink);font-weight:700}
+.seg .jp{font-size:16px;display:block;font-weight:700}
+
+/* sentences and cards */
+.sent{font-family:var(--jp);font-size:clamp(22px,5.8vw,27px);line-height:1.85;word-break:break-word}
+.sent mark{background:var(--ai-wash);color:inherit;border-bottom:2.5px solid var(--ai);padding:0 2px;border-radius:3px}
+.gap{display:inline-block;min-width:3.4em;height:1.1em;border-bottom:2.5px solid var(--shu);margin:0 4px;vertical-align:-.1em}
+.where{font-size:13px;color:var(--soft);display:flex;gap:6px;align-items:baseline;margin-bottom:10px}
+.where::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--shu);transform:translateY(-1px)}
+.answer{border-top:1px dashed var(--line);margin-top:16px;padding-top:14px}
+.target{font-family:var(--jp);font-size:30px;font-weight:700;line-height:1.3}
+.reading{color:var(--soft);font-size:15px}
+.badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--ai-wash);color:var(--ai);font-weight:700;vertical-align:middle}
+.badge.n3{background:var(--shu-wash);color:var(--shu)}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.grades .btn{flex-direction:column;gap:0;padding:8px 4px;font-size:14px}
+.grades .btn small{font-size:11px;color:var(--soft);font-weight:400}
+.grades .again{border-color:var(--shu);color:var(--shu)}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.progress i{display:block;height:100%;background:var(--ai)}
+
+.item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.item:first-child{border-top:0}
+.item input{width:20px;height:20px;margin-top:6px;flex:none;accent-color:var(--ai)}
+.item .s{font-family:var(--jp);font-size:20px;font-weight:700}
+.item .m{font-size:14px}
+
+.list-row{padding:12px 0;border-top:1px solid var(--line)}
+.list-row:first-child{border-top:0}
+.gp{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.gp:first-child{border-top:0}
+.gp .p{font-family:var(--jp);font-weight:700;font-size:18px;min-width:6.5em}
+.gp .ex{font-family:var(--jp);font-size:14.5px;color:var(--soft);margin-top:2px}
+.mark-btn{margin-left:auto;flex:none}
+.caught-flag{color:var(--moss);font-weight:700;font-size:13px}
+
+.passage{font-family:var(--jp);font-size:18.5px;line-height:1.95;white-space:pre-wrap;word-break:break-word}
+.timer{font-family:var(--jp);font-weight:700;font-size:34px;line-height:1}
+.timer.over{color:var(--shu)}
+.q{margin-top:18px}
+.q .qt{font-family:var(--jp);font-size:17px;font-weight:700;margin-bottom:8px}
+.opt{display:flex;gap:10px;width:100%;text-align:left;font:inherit;font-family:var(--jp);font-size:16.5px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-top:6px;cursor:pointer;min-height:44px}
+.opt[aria-pressed="true"]{border-color:var(--ai);background:var(--ai-wash)}
+.opt.right{border-color:var(--moss);background:var(--moss-wash)}
+.opt.wrong{border-color:var(--shu);background:var(--shu-wash)}
+.opt .no{font-family:var(--ui);font-weight:700;color:var(--soft)}
+.log-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.log-row:first-child{border-top:0}
+.ok{color:var(--moss);font-weight:700}
+.bad{color:var(--shu);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-family:var(--jp);font-size:16px;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:8px 12px;cursor:pointer}
+.empty{text-align:center;padding:36px 16px}
+.empty .big{font-family:var(--jp);font-size:44px;color:var(--shu);line-height:1.2;margin-bottom:6px}
+.note{background:var(--ai-wash);border-radius:12px;padding:12px 14px;font-size:14px}
+.err{color:var(--shu);font-size:14px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:90vw}
+.hide{display:none!important}
+details summary{cursor:pointer;color:var(--ai);font-weight:500;min-height:44px;display:flex;align-items:center}
+.capture-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cap-btn{font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 8px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-weight:700;font-size:14px;min-height:84px}
+.cap-btn .k{font-size:30px;color:var(--shu);line-height:1.15}
+.cap-btn:active{background:var(--ai-wash)}
+.crop-wrap{text-align:center;margin-top:8px}
+.crop{position:relative;display:inline-block;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;line-height:0;overflow:hidden;border-radius:8px;max-width:100%}
+.crop img{max-width:100%;max-height:62vh;display:block;pointer-events:none}
+.crop-sel{position:absolute;border:2.5px solid var(--shu);border-radius:4px;display:none;box-shadow:0 0 0 9999px rgba(0,0,0,.38)}
+.thumb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.thumb{width:96px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.thumb.big{display:block;width:100%;height:auto;max-height:260px;object-fit:contain;margin-top:12px;background:var(--paper)}
+.chip[aria-pressed="true"]{border-color:var(--ai);background:var(--ai-wash)}
+label.item{margin:0;font-weight:400}
+.topbar{display:flex;justify-content:flex-end;margin:-6px -6px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<main id="app"><p class="soft" style="padding-top:40px;text-align:center">Opening your notebook…</p></main>
+<nav class="tabs hide" id="tabs" aria-label="Sections"><div class="inner"></div></nav>
+<div id="toast" class="toast hide" role="status"></div>
+
+<script>
+"use strict";
+/* ---------- constants ---------- */
+const EXAM = "2026-12-06";
+const GRAMMAR = [
+["g01","〜うちに","while it's still…; before it changes"],["g02","〜ないうちに","before something happens"],["g03","〜間に","during (a period)"],
+["g04","〜最中に","right in the middle of"],["g05","〜たとたん(に)","the moment… (something unexpected)"],["g06","〜たびに","every time"],
+["g07","〜ついでに","while you're at it"],["g08","〜ところだ","about to / in the middle of / just did"],["g09","〜たばかり","have just done"],
+["g10","〜ばかり","only; nothing but"],["g11","〜おかげで","thanks to"],["g12","〜せいで","because of (bad result)"],
+["g13","〜ために","in order to; because of"],["g14","〜ように","so that"],["g15","〜ようにする","make an effort to"],
+["g16","〜ようになる","come to (be able to)"],["g17","〜ことにする","decide to"],["g18","〜ことになる","it has been decided that"],
+["g19","〜ことはない","there's no need to"],["g20","〜ことだ","you should (advice)"],["g21","〜ものだ","naturally; used to (nostalgia)"],
+["g22","〜はずだ","should be; expected to"],["g23","〜はずがない","can't possibly be"],["g24","〜わけだ","no wonder; that means"],
+["g25","〜わけではない","it doesn't mean that"],["g26","〜わけがない","there's no way that"],["g27","〜わけにはいかない","can't afford to; must not"],
+["g28","〜べきだ","should; ought to"],["g29","〜らしい","it seems; typical of"],["g30","〜っぽい","-ish; tends to"],
+["g31","〜みたいだ","looks like; like"],["g32","〜ようだ","appears; as if"],["g33","〜そうだ (伝聞)","I heard that"],
+["g34","まるで〜ようだ","just as if"],["g35","〜ながら(も)","although; while"],["g36","〜のに","although; even though"],
+["g37","〜くせに","even though (critical)"],["g38","〜ても / 〜としても","even if"],["g39","〜さえ〜ば","if only"],
+["g40","〜さえ","even"],["g41","〜としたら / 〜とすれば","supposing that"],["g42","〜ば〜ほど","the more… the more"],
+["g43","〜ほど","to the extent that"],["g44","〜ほど〜ない","not as… as"],["g45","〜くらい / ぐらい","to the extent; at least"],
+["g46","〜に対して","toward; in contrast to"],["g47","〜について","about; concerning"],["g48","〜によって","by; depending on"],
+["g49","〜によると","according to"],["g50","〜にとって","for; from the viewpoint of"],["g51","〜として","as (a role)"],
+["g52","〜に関して","regarding"],["g53","〜にかわって","instead of; on behalf of"],["g54","〜に比べて","compared with"],
+["g55","〜に加えて","in addition to"],["g56","〜につれて","as… changes, so does…"],["g57","〜にしたがって","in accordance with; as"],
+["g58","〜とともに","together with; as"],["g59","〜を中心に","centered on"],["g60","〜を通じて / 通して","through; via"],
+["g61","〜をはじめ","starting with"],["g62","〜をこめて","with (feeling)"],["g63","〜ずに","without doing"],
+["g64","〜ないことはない","it's not that… not"],["g65","〜しかない","have no choice but to"],["g66","〜ようとする","try to; be about to"],
+["g67","〜てほしい","want someone to"],["g68","〜てもらいたい","would like someone to"],["g69","〜させてください","please let me"],
+["g70","〜させられる","be made to (causative-passive)"],["g71","〜というより","rather than"],["g72","〜というのは","what… means is"],
+["g73","〜とは限らない","not necessarily"],["g74","〜って","casual quote / topic"],["g75","〜かわりに","instead of; in exchange"],
+["g76","〜ばよかった","should have"],["g77","〜きる","do completely"],["g78","〜かける","half-done; about to"],
+["g79","〜だす","suddenly start"],["g80","〜おきに","at intervals of"],["g81","〜ごとに","each; every"],
+["g82","〜向け","intended for"],["g83","〜向き","suitable for"],["g84","〜がち","tend to"],
+["g85","〜気味","a bit; slightly"],["g86","〜だらけ","full of (bad)"],["g87","〜ぶり","first time in (period); manner"],
+["g88","〜ようがない","there's no way to"],["g89","〜なんか / なんて","things like (dismissive)"],["g90","〜こそ","precisely; it's… that"],
+["g91","〜てしょうがない","can't help but feel"],["g92","〜てたまらない","unbearably"],["g93","〜ことから","because (as a basis)"],
+["g94","〜と言えば","speaking of"],["g95","〜てはじめて","only after"],["g96","〜に伴って","along with; as… changes"]
+];
+const GMAP = Object.fromEntries(GRAMMAR.map(g=>[g[0],g]));
+const RTYPES = {
+  short:{jp:"短文",en:"Short",chars:"about 200 Japanese characters",min:3,q:1},
+  mid:{jp:"中文",en:"Medium",chars:"about 350 Japanese characters",min:6,q:3},
+  long:{jp:"長文",en:"Long",chars:"about 550 Japanese characters",min:10,q:4},
+  info:{jp:"情報検索",en:"Info search",chars:"a realistic notice, flyer, or schedule (about 300 characters, may use line breaks and simple lists)",min:6,q:2}
+};
+const TABS = [["today","今","Today"],["capture","拾","Capture"],["review","復","Review"],["hunt","探","Grammar"],["read","読","Reading"]];
+
+/* ---------- helpers ---------- */
+function h(tag, attrs, ...kids){
+  const el=document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs||{})){
+    if(v==null||v===false) continue;
+    if(k==="class") el.className=v;
+    else if(k==="text") el.textContent=v;
+    else if(k.startsWith("on")) el.addEventListener(k.slice(2),v);
+    else el.setAttribute(k, v===true?"":v);
+  }
+  for(const c of kids.flat(Infinity)){ if(c==null||c===false) continue; el.append(c.nodeType?c:document.createTextNode(String(c))); }
+  return el;
+}
+const pad=n=>String(n).padStart(2,"0");
+function ymd(d=new Date()){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function parseD(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function addDays(s,n){const d=parseD(s);d.setDate(d.getDate()+n);return ymd(d);}
+function diffDays(a,b){return Math.round((parseD(b)-parseD(a))/864e5);}
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const today=()=>ymd();
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.remove("hide");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.add("hide"),2800);}
+function fmtSec(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%60);}
+
+/* ---------- state ---------- */
+function defaultState(){return {settings:{lang:"English",goal:5}, days:{}, hunt:{caught:{},today:null,ptr:0}, reads:[]};}
+let S = defaultState();
+let CARDS = [];
+function mergeState(base, o){
+  const r=clone(base);
+  if(o&&typeof o==="object"){
+    r.settings=Object.assign(r.settings,o.settings||{});
+    r.days=o.days||{};
+    r.hunt=Object.assign(r.hunt,o.hunt||{});
+    r.hunt.caught=r.hunt.caught||{};
+    r.reads=Array.isArray(o.reads)?o.reads:[];
+  }
+  return r;
+}
+
+/* ---------- config (API key stays on this phone, never in backups) ---------- */
+const MODELS=[["claude-sonnet-5","Sonnet 5 (best quality)"],["claude-haiku-4-5-20251001","Haiku 4.5 (cheaper, faster)"]];
+let CFG={key:"",model:"claude-sonnet-5"};
+try{CFG=Object.assign(CFG,JSON.parse(localStorage.getItem("machinote-cfg")||"{}"));}catch(e){}
+function saveCfg(){try{localStorage.setItem("machinote-cfg",JSON.stringify(CFG));}catch(e){}}
+const hasAI=()=>!!CFG.key;
+
+/* ---------- storage: text in localStorage, photos in IndexedDB ---------- */
+const Store={
+  mode:"local",
+  async init(){
+    try{
+      const raw=localStorage.getItem("machinote-v1");
+      if(raw){const o=JSON.parse(raw); S=mergeState(S,o.S); CARDS=Array.isArray(o.CARDS)?o.CARDS:[];}
+    }catch(e){}
+    try{await IDB.open();}catch(e){console.warn("IndexedDB unavailable",e);}
+    try{if(navigator.storage&&navigator.storage.persist) navigator.storage.persist();}catch(e){}
+  },
+  prune(){
+    const cutoff=addDays(today(),-150);
+    for(const k of Object.keys(S.days)) if(k<cutoff) delete S.days[k];
+    if(S.reads.length>300) S.reads=S.reads.slice(-300);
+  },
+  _t:null,
+  saveStateSoon(){clearTimeout(this._t);this._t=setTimeout(()=>this.saveState(),400);},
+  saveState(){this.prune();this.local();},
+  saveCard(){this.local();},
+  deleteCard(id){
+    const c=CARDS.find(x=>x.id===id);
+    CARDS=CARDS.filter(x=>x.id!==id);
+    if(c&&c.photo&&!CARDS.some(x=>x.photo===c.photo)) IDB.del(c.photo);
+    this.local();
+  },
+  local(){
+    try{localStorage.setItem("machinote-v1",JSON.stringify({S,CARDS}));}
+    catch(e){toast("Phone storage is full. Export a backup and delete old cards.");}
+  }
+};
+const IDB={
+  db:null,
+  open(){return new Promise((res,rej)=>{const r=indexedDB.open("machinote",1);r.onupgradeneeded=()=>r.result.createObjectStore("imgs");r.onsuccess=()=>{this.db=r.result;res();};r.onerror=()=>rej(r.error);});},
+  put(k,v){return new Promise((res,rej)=>{if(!this.db)return rej("no db");const t=this.db.transaction("imgs","readwrite");t.objectStore("imgs").put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});},
+  get(k){return new Promise(res=>{try{const r=this.db.transaction("imgs").objectStore("imgs").get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(e){res(null);}});},
+  del(k){try{this.db.transaction("imgs","readwrite").objectStore("imgs").delete(k);}catch(e){}},
+  all(){return new Promise(res=>{try{const out={};const r=this.db.transaction("imgs").objectStore("imgs").openCursor();r.onsuccess=()=>{const c=r.result;if(c){out[c.key]=c.value;c.continue();}else res(out);};r.onerror=()=>res(out);}catch(e){res({});}});}
+};
+const photoCache={};
+async function fillPhotos(){
+  for(const el of document.querySelectorAll("img[data-photo]")){
+    const k=el.dataset.photo;
+    if(!(k in photoCache)) photoCache[k]=await IDB.get(k);
+    if(photoCache[k]) el.src=photoCache[k]; else el.remove();
+  }
+}
+
+/* ---------- Claude API (direct from the phone, with your key) ---------- */
+async function callClaude(prompt,{image=null,maxTokens=2500,signal}={}){
+  if(!CFG.key) throw {code:"no_key"};
+  const content=[];
+  if(image) content.push({type:"image",source:{type:"base64",media_type:"image/jpeg",data:image}});
+  content.push({type:"text",text:prompt});
+  let res;
+  try{
+    res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,
+      headers:{"content-type":"application/json","x-api-key":CFG.key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:CFG.model,max_tokens:maxTokens,messages:[{role:"user",content}]})});
+  }catch(e){ if(e&&e.name==="AbortError") throw {code:"cancelled"}; throw {code:"network"}; }
+  if(!res.ok){let msg="";try{const j=await res.json();msg=(j.error&&j.error.message)||"";}catch(e){} throw {code:"http",status:res.status,message:msg};}
+  const j=await res.json();
+  return (j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+}
+async function claudeJSON(prompt,opts){
+  const t=await callClaude(prompt+"\n\nReply with the JSON only, no other text.",opts);
+  const a=t.indexOf("{"), b=t.lastIndexOf("}");
+  if(a<0||b<a) throw {code:"invalid_json"};
+  try{return JSON.parse(t.slice(a,b+1));}catch(e){throw {code:"invalid_json"};}
+}
+function aiError(e){
+  const c=e&&e.code;
+  if(c==="cancelled") return "";
+  if(c==="no_key") return "Add your Anthropic API key in Settings first.";
+  if(c==="network") return navigator.onLine===false?"You're offline. Reviews still work; analysis needs internet.":"Couldn't reach Claude. Check your connection and try again.";
+  if(c==="invalid_json") return "The answer came back in an unexpected format. Try again.";
+  if(c==="http"){
+    if(e.status===401) return "The API key was rejected. Check it in Settings.";
+    if(e.status===403) return "This API key isn't allowed to do that. Check it in Settings.";
+    if(e.status===404||(e.status===400&&/model/i.test(e.message||""))) return "That model isn't available for your key. Pick another one in Settings.";
+    if(e.status===400&&/credit|balance|billing/i.test(e.message||"")) return "Your API account is out of credit. Top it up in the Anthropic console.";
+    if(e.status===429) return "Rate limit reached. Wait a minute and try again.";
+    if(e.status>=500) return "Claude is busy right now. Try again in a moment.";
+    return "Request failed ("+e.status+"). "+(e.message||"");
+  }
+  return "Something went wrong while asking Claude. Try again.";
+}
+const explainLang=()=>S.settings.lang==="Deutsch"?"German":"English";
+
+/* ---------- images ---------- */
+function loadImage(file){return new Promise((res,rej)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>res({img,url});img.onerror=()=>rej(new Error("image"));img.src=url;});}
+function toJpeg(img,rect,maxEdge,q){
+  const nw=img.naturalWidth, nh=img.naturalHeight;
+  const r=rect?{x:rect.x*nw,y:rect.y*nh,w:rect.w*nw,h:rect.h*nh}:{x:0,y:0,w:nw,h:nh};
+  const sc=Math.min(1,maxEdge/Math.max(r.w,r.h));
+  const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(r.w*sc)); c.height=Math.max(1,Math.round(r.h*sc));
+  const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(img,r.x,r.y,r.w,r.h,0,0,c.width,c.height);
+  return c.toDataURL("image/jpeg",q);
+}
+
+/* ---------- derived ---------- */
+function dayRec(d=today()){return S.days[d]||(S.days[d]={cap:0,rev:0,read:0,done:false});}
+function dueCards(){const t=today();return CARDS.filter(c=>c.srs&&c.srs.due<=t);}
+let freshStamp=false;
+function checkDone(){
+  const r=dayRec();
+  if(r.done) return;
+  if(r.rev>=10||r.cap>=3||(r.rev>0&&dueCards().length===0)||r.read>=1){r.done=true;freshStamp=true;}
+}
+function phase(){
+  const t=today();
+  if(t<"2026-11-02") return {n:1,title:"Phase 1: build the habit",line:"Capture daily, hunt grammar, 2 timed readings a week.",readDays:[1,4]};
+  if(t<"2026-11-23") return {n:2,title:"Phase 2: reading speed",line:"3 timed readings a week and one full mock exam.",readDays:[1,3,6]};
+  if(t<=EXAM) return {n:3,title:"Phase 3: final review",line:"Review only. Second mock early, then rest before the exam.",readDays:[2,5]};
+  return {n:4,title:"Exam done",line:"Good luck with the result.",readDays:[]};
+}
+function ensureHunt(){
+  const t=today();
+  if(S.hunt.today&&S.hunt.today.date===t) return;
+  const ids=[]; let p=S.hunt.ptr||0, guard=0;
+  while(ids.length<2&&guard<GRAMMAR.length*2){
+    const g=GRAMMAR[p%GRAMMAR.length]; p++; guard++;
+    if(!S.hunt.caught[g[0]]&&!ids.includes(g[0])) ids.push(g[0]);
+  }
+  S.hunt.ptr=p%GRAMMAR.length;
+  S.hunt.today={date:t,ids};
+  Store.saveStateSoon();
+}
+function swapHunt(id){
+  const ids=S.hunt.today.ids; let p=S.hunt.ptr||0, guard=0;
+  while(guard<GRAMMAR.length){
+    const g=GRAMMAR[p%GRAMMAR.length]; p++; guard++;
+    if(!S.hunt.caught[g[0]]&&!ids.includes(g[0])){ids[ids.indexOf(id)]=g[0];break;}
+  }
+  S.hunt.ptr=p%GRAMMAR.length; Store.saveStateSoon(); render();
+}
+function markCaught(gid, cardId){
+  if(!GMAP[gid]) return false;
+  const was=!!S.hunt.caught[gid];
+  S.hunt.caught[gid]={card:cardId||null,date:today()};
+  return !was;
+}
+
+/* ---------- SRS ---------- */
+function newSrs(){return {due:today(),interval:0,ease:2.5,reps:0,lapses:0};}
+function schedule(s,g){
+  s=Object.assign({},s);
+  if(g===0){s.reps=0;s.lapses=(s.lapses||0)+1;s.ease=Math.max(1.3,s.ease-0.2);s.interval=0;}
+  else{
+    if(s.reps===0) s.interval=g===3?3:1;
+    else if(s.reps===1) s.interval=g===1?2:g===2?3:5;
+    else s.interval=Math.round(s.interval*(g===1?1.2:g===2?s.ease:s.ease*1.3));
+    s.interval=Math.min(21,Math.max(1,s.interval));
+    s.ease=Math.max(1.3,s.ease+(g===1?-0.15:g===3?0.15:0));
+    s.reps++;
+  }
+  s.due=addDays(today(),s.interval);
+  return s;
+}
+function ivLabel(s,g){if(g===0)return "again";const n=schedule(s,g).interval;return n===1?"1 day":n+" days";}
+
+/* ---------- navigation ---------- */
+let view="today", booted=false, timerHandle=null;
+function go(v){view=v;window.scrollTo(0,0);render();}
+function renderTabs(){
+  const nav=document.getElementById("tabs"); nav.classList.remove("hide");
+  const inner=nav.querySelector(".inner"); inner.textContent="";
+  const due=dueCards().length;
+  for(const [id,k,label] of TABS){
+    inner.append(h("button",{type:"button","aria-current":view===id?"page":null,onclick:()=>go(id)},
+      h("span",{class:"k","aria-hidden":"true"},k), label,
+      id==="review"&&due>0?h("span",{class:"dot","aria-label":due+" due"},due>99?"99+":due):null));
+  }
+}
+function render(){
+  if(timerHandle){clearInterval(timerHandle);timerHandle=null;}
+  const app=document.getElementById("app"); app.textContent="";
+  ensureHunt();
+  const fn={today:vToday,capture:vCapture,review:vReview,hunt:vHunt,read:vRead,settings:vSettings}[view];
+  app.append(fn());
+  renderTabs();
+  fillPhotos();
+}
+
+/* ---------- TODAY ---------- */
+function vToday(){
+  const t=today(), ph=phase(), left=diffDays(t,EXAM), rec=dayRec(), due=dueCards().length;
+  const wrap=h("div");
+  wrap.append(h("div",{class:"topbar"},h("button",{class:"btn quiet small",onclick:()=>go("settings")},"Settings")));
+  if(!hasAI()) wrap.append(h("div",{class:"note",style:"margin-bottom:14px"},"First step: add your Anthropic API key so the app can read photos and make cards for you. ",h("button",{class:"btn quiet small",style:"min-height:0;padding:0",onclick:()=>go("settings")},"Open Settings")));
+  wrap.append(h("div",{class:"hero"},
+    h("div",null,h("div",{class:"count"},left>=0?"あと"+left:"済",h("span",{class:"u"},left>=0?"日":"")),
+      h("div",{class:"soft small"},left>=0?"to JLPT N3, Sunday 6 December":"The exam is over")),
+    h("div",{class:"phase"},h("b",null,ph.title),ph.line)));
+
+  // stamps
+  const st=h("div",{class:"stamps","aria-label":"Last 14 days"});
+  for(let i=13;i>=0;i--){
+    const d=addDays(t,-i), r=S.days[d], done=r&&r.done;
+    const cls="stamp"+(done?" done":"")+(i===0?" today":"")+(i===0&&done&&freshStamp?" fresh":"");
+    st.append(h("div",{class:cls,title:d+(done?": done":""),"aria-label":d+(done?" done":" not done")},"済"));
+  }
+  freshStamp=false;
+  wrap.append(st, h("p",{class:"tiny soft"},rec.done?"Today is stamped. Anything more is a bonus.":"A day gets its stamp when you clear your reviews, capture 3 sentences, or do one timed reading."));
+
+  // tasks
+  const goal=S.settings.goal||5;
+  const hunt=S.hunt.today.ids.map(id=>GMAP[id]).filter(Boolean);
+  const isReadDay=ph.readDays.includes(parseD(t).getDay());
+  const tasks=h("div",{class:"panel"});
+  const task=(on,title,body,action)=>tasks.append(h("div",{class:"task"},h("div",{class:"check"+(on?" on":""),"aria-hidden":"true"},"✓"),h("div",{class:"body"},h("div",{class:"t"},title),body,action)));
+  task(due===0&&CARDS.length>0,"Reviews",h("div",{class:"small soft"},due?due+" card"+(due>1?"s":"")+" waiting. Ten minutes, even on a busy day.":CARDS.length?"All clear for today.":"Your first captures will show up here."),
+    due?h("button",{class:"btn primary",style:"margin-top:8px",onclick:()=>go("review")},"Start reviews"):null);
+  task(rec.cap>=goal,"Capture "+rec.cap+" of "+goal+" sentences",h("div",{class:"small soft"},"Anything you read or hear today that you don't fully own: email, Slack, a meeting, a train ad."),
+    h("button",{class:"btn",style:"margin-top:8px",onclick:()=>go("capture")},"Capture a sentence"));
+  task(hunt.every(g=>S.hunt.caught[g[0]]),"Grammar to spot today",
+    h("div",null,hunt.map(g=>h("span",{class:"hunt-pill"+(S.hunt.caught[g[0]]?" caught":"")},h("span",{class:"p"},g[1]),h("span",{class:"small soft"},g[2])))),
+    h("div",{class:"tiny soft",style:"margin-top:6px"},"Read them on the train, then listen for them all day. When you catch one, capture the sentence."));
+  if(isReadDay||rec.read>0) task(rec.read>0,"Timed reading",h("div",{class:"small soft"},"Your July score lost the most points here. One passage against the clock."),
+    rec.read?null:h("button",{class:"btn",style:"margin-top:8px",onclick:()=>go("read")},"Start a reading"));
+  wrap.append(h("div",{class:"sec"},h("h2",null,"Today"),tasks));
+
+  // stats
+  const caught=Object.keys(S.hunt.caught).length;
+  const weekAgo=addDays(t,-6);
+  const wr=S.reads.filter(r=>r.date>=weekAgo);
+  const ratio=wr.length?Math.round(100*wr.reduce((a,r)=>a+r.sec/(r.target*60),0)/wr.length):null;
+  wrap.append(h("div",{class:"sec"},h("h2",null,"Progress"),h("div",{class:"stats"},
+    h("div",{class:"stat"},h("div",{class:"n"},CARDS.length),h("div",{class:"l"},"sentences")),
+    h("div",{class:"stat"},h("div",{class:"n"},caught),h("div",{class:"l"},"of "+GRAMMAR.length+" grammar")),
+    h("div",{class:"stat"},h("div",{class:"n"},wr.length),h("div",{class:"l"},"readings / 7d")),
+    h("div",{class:"stat"},h("div",{class:"n"},ratio==null?"–":ratio+"%"),h("div",{class:"l"},"time vs target")))));
+
+  return wrap;
+}
+/* ---------- CAPTURE ---------- */
+let draft, shot=null;
+function resetDraft(keepContext){
+  const c=draft?draft.context:"";
+  draft={sentence:"",context:keepContext?c:"",unknown:"",analysis:null,sel:{},busy:false,err:"",manual:false,m_target:"",m_reading:"",m_meaning:"",ctl:null,
+    photoThumb:null,lines:null,learn:null,learnSel:{}};
+}
+resetDraft(false);
+function pickPhoto(useCamera){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+  if(useCamera) inp.setAttribute("capture","environment");
+  inp.style.display="none"; document.body.append(inp);
+  inp.onchange=()=>{const f=inp.files&&inp.files[0]; inp.remove(); if(f) startShot(f);};
+  inp.click();
+}
+async function startShot(file){
+  try{
+    const {img,url}=await loadImage(file);
+    if(shot&&shot.url) URL.revokeObjectURL(shot.url);
+    shot={img,url,rect:null,busy:false,err:""};
+    view="capture"; render(); window.scrollTo(0,0);
+  }catch(e){toast("That image couldn't be opened.");}
+}
+function shotPanel(){
+  const p=h("div",{class:"panel sec"});
+  p.append(h("h2",null,"Mark what you want to learn"),
+    h("p",{class:"small soft"},"Drag a box around the sentence or word. Or read the whole image."));
+  const box=h("div",{class:"crop"});
+  const im=h("img",{src:shot.url,alt:"Captured image",draggable:"false"});
+  const sel=h("div",{class:"crop-sel"});
+  const setSel=r=>{if(!r){sel.style.display="none";return;}sel.style.display="block";sel.style.left=(r.x*100)+"%";sel.style.top=(r.y*100)+"%";sel.style.width=(r.w*100)+"%";sel.style.height=(r.h*100)+"%";};
+  setSel(shot.rect);
+  let start=null;
+  const pos=e=>{const b=im.getBoundingClientRect();return {x:Math.min(1,Math.max(0,(e.clientX-b.left)/b.width)),y:Math.min(1,Math.max(0,(e.clientY-b.top)/b.height))};};
+  box.addEventListener("pointerdown",e=>{if(shot.busy)return;start=pos(e);box.setPointerCapture(e.pointerId);setSel({x:start.x,y:start.y,w:0,h:0});e.preventDefault();});
+  box.addEventListener("pointermove",e=>{if(!start)return;const q=pos(e);setSel({x:Math.min(start.x,q.x),y:Math.min(start.y,q.y),w:Math.abs(q.x-start.x),h:Math.abs(q.y-start.y)});});
+  box.addEventListener("pointerup",e=>{if(!start)return;const q=pos(e);const r={x:Math.min(start.x,q.x),y:Math.min(start.y,q.y),w:Math.abs(q.x-start.x),h:Math.abs(q.y-start.y)};start=null;shot.rect=(r.w>0.03&&r.h>0.015)?r:null;render();});
+  box.addEventListener("pointercancel",()=>{start=null;setSel(shot.rect);});
+  box.append(im,sel);
+  p.append(h("div",{class:"crop-wrap"},box));
+  p.append(h("div",{class:"row",style:"margin-top:12px"},
+    shot.rect?h("button",{class:"btn primary",disabled:shot.busy,onclick:()=>readShot(true)},shot.busy?"Reading…":"Read my selection"):null,
+    h("button",{class:"btn"+(shot.rect?"":" primary"),disabled:shot.busy,onclick:()=>readShot(false)},shot.busy&&!shot.rect?"Reading…":"Read whole image"),
+    shot.rect&&!shot.busy?h("button",{class:"btn quiet",onclick:()=>{shot.rect=null;render();}},"Clear box"):null,
+    !shot.busy?h("button",{class:"btn quiet",onclick:()=>{URL.revokeObjectURL(shot.url);shot=null;render();}},"Cancel"):null));
+  if(!hasAI()) p.append(h("div",{class:"err"},"Reading images needs your API key. Add it in Settings."));
+  if(shot.err) p.append(h("div",{class:"err",role:"alert"},shot.err));
+  return p;
+}
+async function readShot(useSel){
+  if(!hasAI()){shot.err=aiError({code:"no_key"});render();return;}
+  shot.busy=true;shot.err="";render();
+  try{
+    const rect=useSel?shot.rect:null;
+    const full=toJpeg(shot.img,rect,1568,0.85).split(",")[1];
+    const thumb=toJpeg(shot.img,rect,560,0.72);
+    const r=await claudeJSON(`This image was captured in Tokyo by a JLPT N3 learner: a screenshot of an email, chat or web page, or a photo of a sign, slide, poster, menu or document.${useSel?" It is the part he marked because he wants to learn from it.":""}
+
+Return JSON: {"lines":["each Japanese sentence or phrase in the image, exactly as written, in reading order, up to 8"],"learn":[{"text":"a word, kanji compound or grammar pattern exactly as written in the image","reading":"hiragana","meaning":"short meaning in ${explainLang()}"}]}
+
+"learn": up to 6 items at N3 or N2 level that are worth learning for the exam; skip easy N5 words. If there is no Japanese text, return {"lines":[],"learn":[]}.`,{image:full,maxTokens:1500});
+    const lines=(Array.isArray(r.lines)?r.lines:[]).filter(x=>typeof x==="string"&&x.trim()).slice(0,8);
+    const learn=(Array.isArray(r.learn)?r.learn:[]).filter(x=>x&&x.text).slice(0,6);
+    if(!lines.length&&!learn.length){shot.busy=false;shot.err="No Japanese text found. Try a closer photo or a tighter box.";render();return;}
+    resetDraft(true);
+    draft.photoThumb=thumb; draft.lines=lines; draft.learn=learn;
+    if(lines.length===1) draft.sentence=lines[0];
+    URL.revokeObjectURL(shot.url); shot=null;
+  }catch(e){shot.busy=false;shot.err=aiError(e);}
+  render();
+}
+function vCapture(){
+  const wrap=h("div");
+  wrap.append(h("h1",null,"拾う"),h("p",{class:"soft small",style:"margin-top:4px"},"Save the whole sentence and where it came from. The place is what makes it stick."));
+  // big capture buttons
+  wrap.append(h("div",{class:"capture-btns sec"},
+    h("button",{class:"cap-btn",type:"button",onclick:()=>pickPhoto(true)},h("span",{class:"k jp","aria-hidden":"true"},"撮"),h("span",null,"Camera")),
+    h("button",{class:"cap-btn",type:"button",onclick:()=>pickPhoto(false)},h("span",{class:"k jp","aria-hidden":"true"},"画"),h("span",null,"Screenshot or photo"))));
+  if(shot){wrap.append(shotPanel());return wrap;}
+
+  const p=h("div",{class:"panel sec"});
+  if(draft.photoThumb) p.append(h("div",{class:"thumb-row"},h("img",{src:draft.photoThumb,class:"thumb",alt:"Your capture"}),
+    h("button",{class:"btn quiet small",onclick:()=>{draft.photoThumb=null;draft.lines=null;draft.learn=null;render();}},"Remove photo")));
+  if(draft.lines&&draft.lines.length>1){
+    p.append(h("div",{class:"small soft"},"Tap the sentence to use:"),
+      h("div",{class:"chips",style:"margin:6px 0 4px"},draft.lines.map(s=>h("button",{class:"chip",type:"button","aria-pressed":String(draft.sentence===s),onclick:()=>{draft.sentence=s;render();}},s))));
+  }
+  const sent=h("textarea",{class:"jp",lang:"ja",id:"f-sent",placeholder:"例：来週までに資料を準備しておいてください。",oninput:e=>{draft.sentence=e.target.value;}});
+  sent.value=draft.sentence;
+  sent.addEventListener("paste",e=>{
+    const items=e.clipboardData?[...e.clipboardData.items]:[];
+    const it=items.find(i=>i.type&&i.type.startsWith("image/"));
+    if(it){const f=it.getAsFile(); if(f){e.preventDefault(); startShot(f);}}
+  });
+  p.append(h("label",{for:"f-sent"},"Sentence ",h("span",{class:"soft"},"(type, paste text, or paste a screenshot)")),sent);
+  if(draft.learn&&draft.learn.length){
+    p.append(h("div",{class:"small soft",style:"margin-top:12px"},"Tap what you want to learn:"),
+      h("div",{class:"chips",style:"margin-top:6px"},draft.learn.map((l,i)=>h("button",{class:"chip",type:"button","aria-pressed":String(!!draft.learnSel[i]),onclick:()=>{
+        draft.learnSel[i]=!draft.learnSel[i];
+        draft.unknown=draft.learn.filter((_,j)=>draft.learnSel[j]).map(x=>x.text).join("、");render();
+      }},h("b",null,l.text),h("span",{class:"tiny soft"}," "+(l.reading||"")+" "+(l.meaning||""))))));
+  }
+  const ctx=h("input",{type:"text",id:"f-ctx",placeholder:"e.g. 部長 in the budget meeting",oninput:e=>{draft.context=e.target.value;}}); ctx.value=draft.context;
+  const unk=h("input",{type:"text",class:"jp",lang:"ja",id:"f-unk",placeholder:"e.g. 準備",oninput:e=>{draft.unknown=e.target.value;}}); unk.value=draft.unknown;
+  p.append(h("label",{for:"f-ctx"},"Where did you meet it?"),ctx,
+    h("label",{for:"f-unk"},"What you didn't know ",h("span",{class:"soft"},"(optional)")),unk);
+  if(hasAI()){
+    p.append(h("div",{class:"row",style:"margin-top:16px"},
+      h("button",{class:"btn primary",disabled:draft.busy,onclick:analyze},draft.busy?"Asking Claude…":"Analyze sentence"),
+      draft.busy?h("button",{class:"btn quiet",onclick:()=>draft.ctl&&draft.ctl.abort()},"Stop"):null,
+      !draft.busy?h("button",{class:"btn quiet",onclick:()=>{draft.manual=!draft.manual;render();}},draft.manual?"Hide manual entry":"Enter it myself"):null));
+  }else{
+    p.append(h("div",{class:"note",style:"margin-top:14px"},"Add your API key in Settings to get readings, translations and cards made for you. Until then, use manual entry below."));
+  }
+  if(draft.err) p.append(h("div",{class:"err",role:"alert"},draft.err));
+  wrap.append(p);
+  if(draft.analysis) wrap.append(analysisPanel());
+  if(!hasAI()||draft.manual) wrap.append(manualPanel());
+
+  const recent=[...CARDS].sort((a,b)=>(b.created||"").localeCompare(a.created||"")).slice(0,8);
+  if(recent.length){
+    const list=h("div",{class:"panel"});
+    for(const c of recent){
+      list.append(h("div",{class:"list-row"},
+        h("div",{class:"spread"},h("span",{class:"jp",style:"font-weight:700;font-size:18px"},c.target),h("button",{class:"btn quiet tiny",onclick:()=>{if(confirm("Delete this card?")){Store.deleteCard(c.id);render();}}},"Delete")),
+        h("div",{class:"jp small"},c.sentence),
+        c.context?h("div",{class:"tiny soft"},c.context):null));
+    }
+    wrap.append(h("div",{class:"sec"},h("h2",null,"Recently captured"),list));
+  }
+  return wrap;
+}
+function grammarListText(){return GRAMMAR.map(g=>g[0]+": "+g[1]+" ("+g[2]+")").join("\n");}
+async function analyze(){
+  const s=draft.sentence.trim();
+  if(!s){draft.err="Type, paste or pick a sentence first.";render();return;}
+  draft.busy=true;draft.err="";draft.analysis=null;draft.ctl=new AbortController();render();
+  const prompt=`You help a JLPT N3 learner (native German speaker, works at a Japanese company HQ in Tokyo, around high-N4 / low-N3 in vocabulary and grammar). He met this Japanese text in real life.
+
+Text: ${s}
+Where he met it: ${draft.context.trim()||"(not given)"}
+What he says he didn't know: ${draft.unknown.trim()||"(not given)"}
+
+Write all meanings, translations and notes in ${explainLang()}.
+
+Return JSON in exactly this shape:
+{"sentence":"the sentence, fixing only obvious typos","reading":"the whole sentence in hiragana","translation":"natural translation","items":[{"kind":"vocab or grammar","surface":"the exact substring as it appears in the sentence","base":"dictionary form","reading":"hiragana reading of the surface (for grammar, the pattern in hiragana)","meaning":"short meaning in context","level":"N5, N4, N3, N2, N1 or business","note":"one short usage note useful for the JLPT"}],"grammarIds":["ids from the list below that clearly appear in the sentence"]}
+
+Rules: up to 6 items. Put what he said he didn't know first (it may list several items separated by 、). Then add vocabulary and grammar at N3 or N2 level worth learning for the exam; skip obvious N5 words. "surface" must be copied character-for-character from "sentence". If the text is only a word or a short phrase (for example from a sign), keep it as the first item and write one natural N3-level example sentence in "sentence" that contains it exactly. grammarIds may be empty.
+
+N3 grammar list:
+${grammarListText()}`;
+  try{
+    const r=await claudeJSON(prompt,{signal:draft.ctl.signal});
+    if(!r||!Array.isArray(r.items)) throw {code:"invalid_json"};
+    r.items=r.items.filter(i=>i&&i.surface).slice(0,6);
+    r.grammarIds=(Array.isArray(r.grammarIds)?r.grammarIds:[]).filter(id=>GMAP[id]);
+    draft.analysis=r; draft.sel={};
+    const marked=draft.unknown.split(/[、,]/).map(x=>x.trim()).filter(Boolean);
+    r.items.forEach((it,i)=>{const lv=String(it.level||"");draft.sel[i]=marked.some(m=>it.surface.includes(m)||m.includes(it.surface)||(it.base&&it.base.includes(m)))||/N3|N2|N1|business/i.test(lv);});
+    if(!Object.values(draft.sel).some(Boolean)&&r.items.length) draft.sel[0]=true;
+  }catch(e){draft.err=aiError(e);}
+  draft.busy=false;draft.ctl=null;render();
+}
+function analysisPanel(){
+  const a=draft.analysis;
+  const p=h("div",{class:"panel sec"});
+  p.append(h("div",{class:"sent",lang:"ja"},a.sentence||draft.sentence),h("div",{class:"reading"},a.reading||""),h("p",{style:"margin-top:8px"},a.translation||""));
+  if(a.grammarIds.length){
+    p.append(h("div",{class:"note",style:"margin-top:10px"},"Grammar in this sentence: ",a.grammarIds.map((id,i)=>[i?", ":"",h("b",{class:"jp"},GMAP[id][1])]),". These will be marked as caught."));
+  }
+  const items=h("div",{style:"margin-top:12px"});
+  a.items.forEach((it,i)=>{
+    const cb=h("input",{type:"checkbox",onchange:e=>{draft.sel[i]=e.target.checked;}}); cb.checked=!!draft.sel[i];
+    const lv=String(it.level||"");
+    items.append(h("label",{class:"item"},cb,h("div",null,
+      h("div",null,h("span",{class:"s"},it.surface)," ",h("span",{class:"reading"},it.reading||"")," ",lv?h("span",{class:"badge"+(/N3/i.test(lv)?" n3":"")},lv):null),
+      h("div",{class:"m"},it.meaning||""),
+      it.note?h("div",{class:"tiny soft"},it.note):null)));
+  });
+  p.append(h("h2",{style:"margin-top:14px"},"Make cards from"),items,
+    h("div",{class:"row",style:"margin-top:14px"},h("button",{class:"btn shu",onclick:saveAnalysis},"Save cards"),h("button",{class:"btn quiet",onclick:()=>{resetDraft(true);render();}},"Discard")));
+  return p;
+}
+function makeCard(o){
+  return {id:newId(),sentence:o.sentence,reading:o.reading||"",translation:o.translation||"",context:o.context||"",
+    target:o.target,base:o.base||"",targetReading:o.targetReading||"",meaning:o.meaning||"",note:o.note||"",
+    kind:o.kind||"vocab",level:o.level||"",grammarIds:o.grammarIds||[],photo:o.photo||null,created:new Date().toISOString(),srs:newSrs()};
+}
+async function storePhoto(){
+  if(!draft.photoThumb) return null;
+  const k="p"+newId();
+  try{await IDB.put(k,draft.photoThumb);photoCache[k]=draft.photoThumb;return k;}catch(e){return null;}
+}
+async function saveAnalysis(){
+  const a=draft.analysis; const chosen=a.items.filter((_,i)=>draft.sel[i]);
+  if(!chosen.length){toast("Tick at least one item.");return;}
+  const photo=await storePhoto();
+  const sentence=a.sentence||draft.sentence.trim();
+  const made=chosen.map(it=>makeCard({sentence,reading:a.reading,translation:a.translation,context:draft.context.trim(),
+    target:it.surface,base:it.base,targetReading:it.reading,meaning:it.meaning,note:it.note,kind:it.kind,level:it.level,grammarIds:a.grammarIds,photo}));
+  let newly=0;
+  for(const c of made) CARDS.push(c);
+  for(const id of a.grammarIds) if(markCaught(id,made[0].id)) newly++;
+  dayRec().cap++; checkDone(); Store.saveState();
+  toast(made.length+" card"+(made.length>1?"s":"")+" saved"+(newly?", "+newly+" grammar caught":""));
+  resetDraft(true); render();
+}
+function manualPanel(){
+  const p=h("div",{class:"panel sec"});
+  const f=(label,key,cls,ph)=>{const i=h("input",{type:"text",class:cls||null,lang:cls?"ja":null,placeholder:ph||"",oninput:e=>{draft[key]=e.target.value;}});i.value=draft[key];return [h("label",null,label),i];};
+  const gsel=h("select",{id:"m-g"},h("option",{value:""},"None"),GRAMMAR.map(g=>h("option",{value:g[0]},g[1]+"  "+g[2])));
+  p.append(...[h("h2",null,"Manual card"),
+    f("Word or grammar to learn (as it appears in the sentence)","m_target","jp","準備"),
+    f("Reading","m_reading","jp","じゅんび"),
+    f("Meaning","m_meaning",null,"preparation"),
+    h("label",{for:"m-g"},"Grammar point it shows ",h("span",{class:"soft"},"(optional)")),gsel,
+    h("button",{class:"btn shu",style:"margin-top:16px",onclick:async()=>{
+      const s=draft.sentence.trim(), t=draft.m_target.trim()||draft.unknown.trim();
+      if(!s||!t){toast("Add the sentence and the word to learn.");return;}
+      const gid=gsel.value, photo=await storePhoto();
+      const c=makeCard({sentence:s,context:draft.context.trim(),target:t,targetReading:draft.m_reading.trim(),meaning:draft.m_meaning.trim(),kind:gid?"grammar":"vocab",grammarIds:gid?[gid]:[],photo});
+      CARDS.push(c);
+      if(gid) markCaught(gid,c.id);
+      dayRec().cap++;checkDone();Store.saveState();toast("Card saved");resetDraft(true);render();
+    }},"Save card")].flat());
+  return p;
+}
+
+/* ---------- REVIEW ---------- */
+let session=null;
+function startSession(){
+  const q=dueCards().sort((a,b)=>a.srs.due.localeCompare(b.srs.due)||Math.random()-.5).map(c=>c.id);
+  session={queue:q,idx:0,shown:false,total:q.length,done:0};
+}
+function vReview(){
+  if(!session||session.idx>=session.queue.length){
+    if(!session||dueCards().length) startSession();
+  }
+  const wrap=h("div");
+  if(!session.queue.length||session.idx>=session.queue.length){
+    const reviewed=session&&session.done>0;
+    wrap.append(h("div",{class:"empty"},h("div",{class:"big"},reviewed?"済":"空"),
+      h("h2",null,reviewed?"Reviews done for today":"Nothing to review"),
+      h("p",{class:"soft small"},reviewed?"Now go collect new sentences from your day.":CARDS.length?"Come back tomorrow, or capture something new.":"Capture your first sentence and it will appear here."),
+      h("button",{class:"btn primary",onclick:()=>go("capture")},"Capture a sentence")));
+    session=null; return wrap;
+  }
+  const c=CARDS.find(x=>x.id===session.queue[session.idx]);
+  if(!c){session.idx++;return vReview();}
+  const pct=Math.round(100*session.done/Math.max(1,session.total));
+  wrap.append(h("div",{class:"spread small soft",style:"margin-bottom:6px"},h("span",null,session.done+" of "+session.total+" reviewed"),h("span",null,c.kind==="grammar"?"Grammar":"Vocabulary")),
+    h("div",{class:"progress"},h("i",{style:"width:"+pct+"%"})));
+  const idx=c.sentence.indexOf(c.target);
+  const cloze=idx>=0&&(c.srs.reps%2===1||c.kind==="grammar");
+  const p=h("div",{class:"panel"});
+  if(c.context||c.photo) p.append(h("div",{class:"where"},(c.context||"")+(c.photo?(c.context?"  ":"")+"(photo on the back)":"")));
+  const sentEl=h("div",{class:"sent",lang:"ja"});
+  if(idx<0) sentEl.append(c.sentence);
+  else if(cloze&&!session.shown) sentEl.append(c.sentence.slice(0,idx),h("span",{class:"gap","aria-label":"blank"}),c.sentence.slice(idx+c.target.length));
+  else sentEl.append(c.sentence.slice(0,idx),h("mark",null,c.target),c.sentence.slice(idx+c.target.length));
+  p.append(sentEl);
+  if(!session.shown){
+    p.append(h("p",{class:"soft small",style:"margin-top:12px"},
+      idx<0?"Read it and recall what "+c.target+" means here.":cloze?"What goes in the gap? Hint: "+(c.meaning||"(no hint)"):"Read the marked part aloud and say what it means."));
+    p.append(h("button",{class:"btn primary wide",style:"margin-top:14px",id:"showBtn",onclick:()=>{session.shown=true;render();}},"Show answer"));
+  }else{
+    p.append(h("div",{class:"answer"},
+      h("div",null,h("span",{class:"target"},c.target)," ",h("span",{class:"reading"},c.targetReading||""),c.level?[" ",h("span",{class:"badge"+(/N3/i.test(c.level)?" n3":"")},c.level)]:null),
+      h("div",{style:"margin-top:2px"},c.meaning||""),
+      c.note?h("div",{class:"tiny soft",style:"margin-top:4px"},c.note):null,
+      c.reading?h("div",{class:"reading jp",style:"margin-top:12px"},c.reading):null,
+      c.translation?h("div",{class:"small",style:"margin-top:4px"},c.translation):null,
+      c.photo?h("img",{class:"thumb big","data-photo":c.photo,alt:"Where you captured it"}):null));
+    const g=h("div",{class:"grades"});
+    [["Again",0,"again"],["Hard",1,""],["Good",2,""],["Easy",3,""]].forEach(([l,v,cls])=>g.append(
+      h("button",{class:"btn "+cls,onclick:()=>grade(c,v)},l,h("small",null,ivLabel(c.srs,v)))));
+    p.append(g);
+  }
+  wrap.append(p,h("div",{class:"row",style:"justify-content:space-between;margin-top:10px"},
+    h("span",{class:"tiny soft"},"Keys: space to show, 1 to 4 to grade"),
+    h("button",{class:"btn quiet tiny",onclick:()=>{if(confirm("Delete this card?")){Store.deleteCard(c.id);session.queue.splice(session.idx,1);session.total--;session.shown=false;render();}}},"Delete card")));
+  return wrap;
+}
+function grade(c,g){
+  c.srs=schedule(c.srs,g); Store.saveCard(c);
+  const r=dayRec(); r.rev++;
+  if(g===0) session.queue.push(c.id); else session.done++;
+  session.idx++; session.shown=false;
+  checkDone(); Store.saveStateSoon(); render();
+}
+document.addEventListener("keydown",e=>{
+  if(view!=="review"||!session||["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+  const c=CARDS.find(x=>x.id===session.queue[session.idx]); if(!c) return;
+  if(!session.shown&&(e.key===" "||e.key==="Enter")){e.preventDefault();session.shown=true;render();}
+  else if(session.shown&&["1","2","3","4"].includes(e.key)){grade(c,Number(e.key)-1);}
+});
+
+/* ---------- GRAMMAR HUNT ---------- */
+let huntFilter="todo";
+function vHunt(){
+  const wrap=h("div");
+  const caught=Object.keys(S.hunt.caught).length;
+  wrap.append(h("h1",null,"探す"),h("p",{class:"soft small",style:"margin-top:4px"},"Study a point for one minute in the morning, then catch it in real Japanese during the day. A caught point comes with your own sentence."));
+  const tp=h("div",{class:"panel sec"},h("h2",null,"Today's targets"));
+  for(const id of S.hunt.today.ids){
+    const g=GMAP[id]; if(!g) continue; const got=S.hunt.caught[id];
+    tp.append(h("div",{class:"gp"},h("div",{class:"p"},g[1]),h("div",{style:"flex:1"},h("div",{class:"small"},g[2]),got?h("div",{class:"caught-flag"},"Caught"):null),
+      got?null:h("button",{class:"btn quiet small mark-btn",onclick:()=>swapHunt(id)},"Swap")));
+  }
+  wrap.append(tp);
+  wrap.append(h("div",{class:"spread",style:"margin-bottom:10px"},h("h2",{style:"margin:0"},caught+" of "+GRAMMAR.length+" caught"),
+    h("div",{class:"seg",style:"min-width:220px"},[["todo","To find"],["done","Caught"],["all","All"]].map(([k,l])=>h("button",{type:"button","aria-pressed":String(huntFilter===k),onclick:()=>{huntFilter=k;render();}},l)))));
+  const list=h("div",{class:"panel"});
+  const rows=GRAMMAR.filter(g=>huntFilter==="all"||(huntFilter==="done")===!!S.hunt.caught[g[0]]);
+  if(!rows.length) list.append(h("p",{class:"soft small",style:"margin:0"},huntFilter==="done"?"Nothing caught yet. Capture a sentence that uses one of today's targets.":"Every point is caught."));
+  for(const g of rows){
+    const got=S.hunt.caught[g[0]]; const card=got&&got.card?CARDS.find(c=>c.id===got.card):null;
+    list.append(h("div",{class:"gp"},h("div",{class:"p"},g[1]),
+      h("div",{style:"flex:1;min-width:0"},h("div",{class:"small"},g[2]),card?h("div",{class:"ex"},card.sentence):got?h("div",{class:"caught-flag"},"Caught"):null),
+      h("button",{class:"btn quiet small mark-btn",onclick:()=>{if(got){delete S.hunt.caught[g[0]];}else{markCaught(g[0],null);}Store.saveState();render();}},got?"Undo":"Mark caught")));
+  }
+  wrap.append(list);
+  return wrap;
+}
+
+/* ---------- READING ---------- */
+let R={type:"mid",status:"idle",item:null,start:0,sec:0,ans:[],err:"",ctl:null,book:{min:"",ok:"",tot:""}};
+function vRead(){
+  const wrap=h("div"), T=RTYPES[R.type];
+  wrap.append(h("h1",null,"読む"),h("p",{class:"soft small",style:"margin-top:4px"},"In July the reading section cost you time. Practice with the clock running, always."));
+  if(R.status==="idle"||R.status==="loading"){
+    const p=h("div",{class:"panel sec"});
+    p.append(h("div",{class:"seg"},Object.entries(RTYPES).map(([k,v])=>h("button",{type:"button","aria-pressed":String(R.type===k),onclick:()=>{R.type=k;render();}},h("span",{class:"jp"},v.jp),v.en))),
+      h("p",{class:"small soft",style:"margin-top:10px"},"Target time: "+T.min+" minutes, "+T.q+" question"+(T.q>1?"s":"")+"."));
+    if(hasAI()){
+      p.append(h("p",{class:"small",style:"margin-top:4px"},"Claude writes an original N3-style passage and reuses words from your own cards where it fits. The timer starts when the passage appears."),
+        h("div",{class:"row",style:"margin-top:10px"},
+          h("button",{class:"btn primary",disabled:R.status==="loading",onclick:genPassage},R.status==="loading"?"Writing a passage…":"Start a timed passage"),
+          R.status==="loading"?h("button",{class:"btn quiet",onclick:()=>R.ctl&&R.ctl.abort()},"Stop"):null));
+    }
+    else p.append(h("div",{class:"note",style:"margin-top:10px"},"Add your API key in Settings to get generated passages. You can still log drills from a book below."));
+    if(R.err) p.append(h("div",{class:"err",role:"alert"},R.err));
+    wrap.append(p);
+
+    // book log
+    const b=h("details",{class:"sec"},h("summary",null,"Log a drill from your book"));
+    const mi=h("input",{type:"number",min:"0",step:"0.5",placeholder:"minutes",oninput:e=>R.book.min=e.target.value}); mi.value=R.book.min;
+    const ok=h("input",{type:"number",min:"0",placeholder:"right",oninput:e=>R.book.ok=e.target.value}); ok.value=R.book.ok;
+    const tot=h("input",{type:"number",min:"1",placeholder:"total",oninput:e=>R.book.tot=e.target.value}); tot.value=R.book.tot;
+    b.append(h("div",{class:"panel"},h("p",{class:"small soft",style:"margin:0"},"Uses the type selected above ("+T.jp+", target "+T.min+" min)."),
+      h("label",null,"Time taken"),mi,h("div",{class:"row",style:"flex-wrap:nowrap"},h("div",{style:"flex:1"},h("label",null,"Correct"),ok),h("div",{style:"flex:1"},h("label",null,"Questions"),tot)),
+      h("button",{class:"btn shu",style:"margin-top:14px",onclick:()=>{
+        const m=parseFloat(R.book.min),o=parseInt(R.book.ok),t=parseInt(R.book.tot);
+        if(!(m>0)||!(t>0)||isNaN(o)||o>t){toast("Enter the time and a valid score.");return;}
+        logRead({type:R.type,sec:Math.round(m*60),target:T.min,ok:o,tot:t,src:"book"});R.book={min:"",ok:"",tot:""};render();
+      }},"Log drill")));
+    wrap.append(b);
+    wrap.append(readHistory());
+    return wrap;
+  }
+  // reading or done
+  const it=R.item, done=R.status==="done";
+  const timer=h("div",{class:"timer",id:"timer"},fmtSec(done?R.sec:(Date.now()-R.start)/1000));
+  wrap.append(h("div",{class:"spread sec",style:"margin-bottom:12px"},h("div",null,h("div",{class:"tiny soft"},RTYPES[it.type].jp+", target "+RTYPES[it.type].min+" min"),timer),
+    done?h("button",{class:"btn",onclick:()=>{R.status="idle";R.item=null;render();}},"Back"):null));
+  if(!done){
+    const lim=RTYPES[it.type].min*60;
+    timerHandle=setInterval(()=>{const el=document.getElementById("timer");if(!el)return;const s=(Date.now()-R.start)/1000;el.textContent=fmtSec(s);el.classList.toggle("over",s>lim);},1000);
+  }else if(R.sec>RTYPES[it.type].min*60) timer.classList.add("over");
+  const p=h("div",{class:"panel"});
+  if(it.title) p.append(h("h2",{class:"jp",style:"font-size:19px"},it.title));
+  p.append(h("div",{class:"passage",lang:"ja"},it.passage));
+  wrap.append(p);
+  it.questions.forEach((q,qi)=>{
+    const box=h("div",{class:"q"},h("div",{class:"qt",lang:"ja"},(qi+1)+". "+q.q));
+    q.options.forEach((o,oi)=>{
+      let cls="opt"; if(done){if(oi===q.answer)cls+=" right";else if(R.ans[qi]===oi)cls+=" wrong";}
+      box.append(h("button",{class:cls,type:"button","aria-pressed":String(R.ans[qi]===oi),disabled:done,onclick:()=>{R.ans[qi]=oi;render();}},h("span",{class:"no"},oi+1),h("span",{lang:"ja"},o)));
+    });
+    if(done&&q.explain) box.append(h("div",{class:"small soft",style:"margin-top:8px"},q.explain));
+    wrap.append(box);
+  });
+  if(!done){
+    wrap.append(h("button",{class:"btn shu wide",style:"margin-top:20px",onclick:()=>{
+      if(R.ans.filter(x=>x!=null).length<it.questions.length&&!confirm("Some questions are unanswered. Finish anyway?")) return;
+      R.sec=Math.round((Date.now()-R.start)/1000); R.status="done";
+      const ok=it.questions.filter((q,i)=>R.ans[i]===q.answer).length;
+      logRead({type:it.type,sec:R.sec,target:RTYPES[it.type].min,ok,tot:it.questions.length,src:"claude"});
+      window.scrollTo(0,0); render();
+    }},"Finish and check"));
+  }else{
+    const ok=it.questions.filter((q,i)=>R.ans[i]===q.answer).length;
+    const inTime=R.sec<=RTYPES[it.type].min*60;
+    wrap.insertBefore(h("div",{class:"note",style:"margin-bottom:12px"},ok+" of "+it.questions.length+" correct in "+fmtSec(R.sec)+". ",inTime?"Within the target time.":"Over the target time: next time, read the questions first, then scan for the answer."),wrap.children[3]);
+  }
+  return wrap;
+}
+function logRead(r){
+  r.date=today(); S.reads.push(r); dayRec().read++; checkDone(); Store.saveState();
+  toast("Reading logged");
+}
+function readHistory(){
+  const rs=S.reads.slice(-10).reverse();
+  const box=h("div",{class:"sec"},h("h2",null,"Recent readings"));
+  if(!rs.length){box.append(h("p",{class:"soft small"},"No readings yet. Your times will show up here."));return box;}
+  const p=h("div",{class:"panel"});
+  for(const r of rs){
+    const within=r.sec<=r.target*60;
+    p.append(h("div",{class:"log-row"},h("span",null,r.date.slice(5).replace("-","/")+"  ",h("span",{class:"jp"},RTYPES[r.type]?RTYPES[r.type].jp:r.type),r.src==="book"?h("span",{class:"soft"}," (book)"):null),
+      h("span",null,h("span",{class:within?"ok":"bad"},fmtSec(r.sec))," / "+r.target+":00   "+r.ok+"/"+r.tot)));
+  }
+  box.append(p); return box;
+}
+async function genPassage(){
+  const T=RTYPES[R.type];
+  const words=[...CARDS].sort((a,b)=>(b.created||"").localeCompare(a.created||"")).slice(0,15).map(c=>c.base||c.target);
+  R.status="loading";R.err="";R.ctl=new AbortController();render();
+  const prompt=`Write one original JLPT N3-style reading comprehension (読解) item.
+
+Type: ${T.jp}. Length: ${T.chars}. Number of questions: ${T.q}.
+Topic: everyday or work life in Japan (office, commuting, neighborhood, shops, family). Vary the topic.
+Use natural N3-level vocabulary, grammar and kanji, like the real exam. Write the passage in plain or polite style as fits the genre.
+${words.length?"Where it fits naturally, reuse a few of these words the learner is studying: "+words.join("、")+".":""}
+Questions and options must be in Japanese, like the real exam, each with exactly 4 options and one clearly correct answer. Make the wrong options plausible.
+Write each explanation in ${explainLang()}, one or two sentences, pointing to the part of the passage that gives the answer.
+
+Return only JSON: {"title":"short Japanese title or empty string","passage":"...","questions":[{"q":"...","options":["...","...","...","..."],"answer":0,"explain":"..."}]}
+"answer" is the 0-based index of the correct option.`;
+  try{
+    const r=await claudeJSON(prompt,{signal:R.ctl.signal,maxTokens:3000});
+    if(!r||typeof r.passage!=="string"||!Array.isArray(r.questions)) throw {code:"invalid_json"};
+    const qs=r.questions.filter(q=>q&&Array.isArray(q.options)&&q.options.length>=2&&Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.options.length);
+    if(!qs.length) throw {code:"invalid_json"};
+    R.item={type:R.type,title:r.title||"",passage:r.passage,questions:qs};
+    R.ans=[];R.start=Date.now();R.status="reading";
+  }catch(e){R.err=aiError(e);R.status="idle";}
+  R.ctl=null;render();
+}
+
+/* ---------- SETTINGS ---------- */
+let photoDump=null, showKey=false, testMsg="";
+function vSettings(){
+  IDB.all().then(p=>{photoDump=p;});
+  const wrap=h("div");
+  wrap.append(h("div",{class:"spread"},h("h1",null,"設定"),h("button",{class:"btn quiet",onclick:()=>go("today")},"Done")));
+
+  const k=h("input",{type:showKey?"text":"password",id:"f-key",autocomplete:"off",autocapitalize:"off",spellcheck:"false",placeholder:"sk-ant-…",oninput:e=>{CFG.key=e.target.value.trim();saveCfg();}});
+  k.value=CFG.key;
+  const ai=h("div",{class:"panel sec"},
+    h("h2",null,"Claude connection"),
+    h("p",{class:"small soft"},"Paste an API key from the Anthropic developer console (API keys page). It's stored only on this phone and is never included in backups. Setting a monthly spend limit in the console is a good idea."),
+    h("label",{for:"f-key"},"API key"),k,
+    h("div",{class:"row",style:"margin-top:8px"},
+      h("button",{class:"btn quiet small",onclick:()=>{showKey=!showKey;render();}},showKey?"Hide key":"Show key"),
+      h("button",{class:"btn small",onclick:testKey},"Test connection")),
+    testMsg?h("div",{class:"small",style:"margin-top:6px"},testMsg):null,
+    h("label",null,"Model"),
+    h("div",{class:"seg"},MODELS.map(([id,l])=>h("button",{type:"button","aria-pressed":String(CFG.model===id),onclick:()=>{CFG.model=id;saveCfg();render();}},l))));
+  wrap.append(ai);
+
+  const goal=S.settings.goal||5;
+  wrap.append(h("div",{class:"panel sec"},
+    h("h2",null,"Study"),
+    h("label",null,"Explanation language"),
+    h("div",{class:"seg"},["English","Deutsch"].map(l=>h("button",{type:"button","aria-pressed":String(S.settings.lang===l),onclick:()=>{S.settings.lang=l;Store.saveState();render();}},l))),
+    h("label",null,"Daily capture goal"),
+    h("input",{type:"number",min:"1",max:"30",value:String(goal),onchange:e=>{S.settings.goal=Math.min(30,Math.max(1,parseInt(e.target.value)||5));Store.saveState();}})));
+
+  const imp=h("input",{type:"file",accept:"application/json,.json",style:"display:none",onchange:e=>importJSON(e.target.files&&e.target.files[0])});
+  wrap.append(h("div",{class:"panel sec"},
+    h("h2",null,"Backup"),
+    h("p",{class:"small soft"},"Everything lives on this phone. Export a backup every week or two and save it to iCloud Drive or send it to yourself. Import also accepts a backup from the claude.ai version of 街ノート."),
+    h("div",{class:"row"},
+      h("button",{class:"btn",onclick:exportJSON},"Export backup"),
+      h("button",{class:"btn",onclick:exportCSV},"Export cards (CSV)"),
+      h("button",{class:"btn quiet",onclick:()=>imp.click()},"Import backup"),imp),
+    h("p",{class:"tiny soft",style:"margin-top:10px"},CARDS.length+" cards on this phone."+(navigator.standalone?"":" Tip: add this app to your Home Screen from Safari's Share menu so it opens full-screen."))));
+  return wrap;
+}
+async function testKey(){
+  testMsg="Testing…";render();
+  try{await callClaude("Reply with the single word: OK",{maxTokens:10});testMsg="Connected. Claude features are on.";}
+  catch(e){testMsg=aiError(e);}
+  render();
+}
+async function shareOrDownload(filename,text,mime){
+  const blob=new Blob([text],{type:mime});
+  try{
+    const file=new File([blob],filename,{type:mime});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:filename});return;}
+  }catch(e){if(e&&e.name==="AbortError")return;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.append(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+function exportJSON(){shareOrDownload("machi-note-backup-"+today()+".json",JSON.stringify({S,CARDS,photos:photoDump||{}}),"application/json");}
+function exportCSV(){
+  const q=s=>'"'+String(s??"").replace(/"/g,'""')+'"';
+  const rows=[["sentence","target","reading","meaning","translation","where","created"].map(q).join(",")];
+  for(const c of CARDS) rows.push([c.sentence,c.target,c.targetReading,c.meaning,c.translation,c.context,c.created].map(q).join(","));
+  shareOrDownload("machi-note-cards-"+today()+".csv","\ufeff"+rows.join("\n"),"text/csv");
+}
+async function importJSON(file){
+  if(!file) return;
+  try{
+    const o=JSON.parse(await file.text());
+    if(!o||!Array.isArray(o.CARDS)) throw new Error("format");
+    if(CARDS.length&&!confirm("Replace the "+CARDS.length+" cards on this phone with the "+o.CARDS.length+" cards in the backup?")) return;
+    S=mergeState(defaultState(),o.S); CARDS=o.CARDS.filter(c=>c&&c.id&&c.sentence);
+    if(o.photos&&typeof o.photos==="object") for(const [k,v] of Object.entries(o.photos)) if(typeof v==="string") await IDB.put(k,v).catch(()=>{});
+    Store.saveState(); session=null; toast("Imported "+CARDS.length+" cards"); render();
+  }catch(e){toast("That file isn't a 街ノート backup.");}
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  await Store.init();
+  booted=true;
+  ensureHunt();
+  render();
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
